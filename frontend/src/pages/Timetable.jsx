@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import axios from "axios";
 import Footer from "../components/Footer";
+import { setTimeTable, getTimeTable } from "../services/timetableApi.js";
 
 const Timetable = () => {
 	const [uploadedImage, setUploadedImage] = useState();
@@ -47,7 +48,7 @@ const Timetable = () => {
 	};
 
 	const handleCellChange = (e, rowIndex, cellIndex) => {
-		const updatedTable = [...table];
+		const updatedTable = table;
 		updatedTable[rowIndex][cellIndex] = e.target.innerText;
 		setTable(updatedTable);
 	};
@@ -66,7 +67,9 @@ const Timetable = () => {
 						editableCell.cellIndex === cellIndex
 					}
 					suppressContentEditableWarning={true}
-					onChange={(e) => handleCellChange(e, rowIndex, cellIndex)}>
+					onInput={(e) => {
+						handleCellChange(e, rowIndex, cellIndex);
+					}}>
 					{cell}
 				</td>
 			))}
@@ -90,12 +93,16 @@ const Timetable = () => {
 		}
 	};
 
+	const handleSaveTable = async () => {
+		setTimeTable(table);
+	};
+
 	return (
 		<div className='w-[100vw]'>
 			<div className='w-full'>
 				<Header />
 			</div>
-			<div className='w-full'>
+			<div className='w-full overflow-auto'>
 				<div className='w-full flex flex-col justify-center items-center py-6 gap-3'>
 					<div className='border rounded-lg py-1 px-4'>
 						Auto-generate table by uploading image
@@ -116,14 +123,21 @@ const Timetable = () => {
 				<div className='mx-auto w-full flex justify-center items-center py-2'>
 					- OR -
 				</div>
-				<div className='w-full flex justify-center items-center overflow-auto py-2'>
-					<table className='border-collapse table-auto'>
-						<tbody
-							id='example-table'
-							className='w-[60vw] h-[50vh]'>
-							{tableEntries}
-						</tbody>
-					</table>
+				<div className='w-full flex flex-col justify-center items-center overflow-auto py-2'>
+					<div>
+						<table className='border-collapse table-auto'>
+							<tbody
+								id='example-table'
+								className='w-[60vw] h-[50vh]'>
+								{tableEntries}
+							</tbody>
+						</table>
+					</div>
+					<button
+						className='border p-4'
+						onClick={handleSaveTable}>
+						SAVE
+					</button>
 				</div>
 			</div>
 			<div className='pt-2'>

@@ -7,11 +7,9 @@ async function setTimetable(req, res) {
 	try {
 		const { table_id, timetable } = req.body;
 
-		// Check if a timetable already exists with the provided table_id
 		let existingTimetable = await Timetable.findOne({ table_id: table_id });
 
 		if (existingTimetable) {
-			// If a timetable already exists, update it
 			existingTimetable.array = timetable;
 			await existingTimetable.save();
 			res.status(200).json({
@@ -20,7 +18,6 @@ async function setTimetable(req, res) {
 				table_id: table_id,
 			});
 		} else {
-			// If no timetable exists, create a new one
 			const newTimetable = new Timetable({
 				table_id: table_id,
 				array: timetable,
@@ -63,12 +60,10 @@ const getTimetable = async (req, res) => {
 		res.status(200).json({ success: true, timetable: timetable });
 	} catch (error) {
 		console.error("Error:", error);
-		res
-			.status(500)
-			.json({
-				success: false,
-				message: "An error occurred while fetching timetable",
-			});
+		res.status(500).json({
+			success: false,
+			message: "An error occurred while fetching timetable",
+		});
 	}
 };
 

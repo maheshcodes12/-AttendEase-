@@ -1,19 +1,40 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { getTimeTable } from "../services/timetableApi";
+import { getAttendance, setAttendance } from "../services/userAttendanceApi";
 
 const Homepage = () => {
-	const table = [
+	const [table, setTable] = useState([
 		["TIME >", "10-11", "11-12"],
-		["Monday", "Maths", "DA"],
-	];
-	const userAttendance = {
+		["Monday", "Maths", "DA", "TOC", "OS"],
+	]);
+	const [userAttendance, setUserAttendance] = useState({
 		Maths: { attended: 4, total: 5 },
 		DA: { attended: 4, total: 5 },
 		TOC: { attended: 4, total: 5 },
 		OS: { attended: 4, total: 5 },
-	};
+	});
 	const [reqAttendance, setReqAttendance] = useState(75);
+	useEffect(() => {
+		async function getData() {
+			const result1 = await getTimeTable().then((result) => {
+				setTable(result.array);
+				console.log(table);
+			});
+			const result2 = await getAttendance().then((result) => {
+				setAttendance(result.attendance);
+				console.log(userAttendance);
+			});
+		}
+		getData();
+	}, []);
+	// const userAttendance = {
+	// 	Maths: { attended: 4, total: 5 },
+	// 	DA: { attended: 4, total: 5 },
+	// 	TOC: { attended: 4, total: 5 },
+	// 	OS: { attended: 4, total: 5 },
+	// };
 
 	var date = new Date();
 	var days = [
