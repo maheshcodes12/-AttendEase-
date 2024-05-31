@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const userAttendanceSchema = new mongoose.Schema(
 	{
 		user_id: Number,
-		attendance: { type: Object },
+		attendance: mongoose.Schema.Types.Mixed,
 	},
 	{ timestamps: true }
 );

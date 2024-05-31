@@ -1,0 +1,9 @@
+/* Timetable.css */
+input[type="text"] {
+	width: 100%;
+	border: none;
+	outline: none;
+	padding: 0;
+	font-size: inherit;
+	background: transparent;
+}

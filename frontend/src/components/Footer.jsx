@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const Footer = () => {
 	return (
-		<div className='flex justify-evenly items-center text-sm'>
+		<div className='flex justify-evenly items-center text-sm py-4'>
 			<Link to='/'>
 				<div>
 					<div></div>

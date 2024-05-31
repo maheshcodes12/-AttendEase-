@@ -5,11 +5,9 @@ async function setUserAttendance(req, res) {
 	try {
 		const { user_id, attendance } = req.body;
 
-		// Check if attendance already exists for the provided user_id
 		let existingAttendance = await userAttendance.findOne({ user_id: user_id });
 
 		if (existingAttendance) {
-			// If attendance exists, update it
 			existingAttendance.attendance = attendance;
 			await existingAttendance.save();
 			res.status(200).json({
@@ -18,7 +16,6 @@ async function setUserAttendance(req, res) {
 				user_id: user_id,
 			});
 		} else {
-			// If no attendance exists, create a new one
 			const newAttendance = new userAttendance({
 				user_id: user_id,
 				attendance: attendance,
@@ -42,24 +39,24 @@ async function setUserAttendance(req, res) {
 async function getUserAttendance(req, res) {
 	try {
 		const { user_id } = req.query;
-
 		if (!user_id) {
 			return res
 				.status(400)
 				.json({ success: false, message: "User ID is required" });
 		}
 
-		// Find attendance data for the provided user_id
-		const attendance = await userAttendance.findOne({ user_id: user_id });
+		const gotAttendance = await userAttendance.find({ user_id: user_id });
 
-		if (!attendance) {
+		if (!gotAttendance) {
 			return res.status(404).json({
 				success: false,
 				message: "Attendance data not found for the provided user ID",
 			});
 		}
 
-		res.status(200).json({ success: true, attendance: attendance });
+		res
+			.status(200)
+			.json({ success: true, attendance: gotAttendance[0].attendance });
 	} catch (error) {
 		console.error("Error:", error);
 		res.status(500).json({

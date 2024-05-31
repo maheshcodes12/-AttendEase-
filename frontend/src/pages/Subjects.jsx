@@ -4,37 +4,17 @@ import Footer from "../components/Footer";
 import { getTimeTable } from "../services/timetableApi";
 import { getAttendance, setAttendance } from "../services/userAttendanceApi";
 
-const Homepage = () => {
-	const [table, setTable] = useState([
-		["TIME >", "10-11", "11-12"],
-		["Monday", "Maths", "DA", "TOC", "OS"],
-	]);
-	const [userAttendance, setUserAttendance] = useState({
-		Maths: { attended: 4, total: 5 },
-		DA: { attended: 4, total: 5 },
-		TOC: { attended: 4, total: 5 },
-		OS: { attended: 4, total: 5 },
-	});
-	const [reqAttendance, setReqAttendance] = useState(75);
+const Subjects = ({ table, userAttendance, reqAtt }) => {
+	const [tableSubjects, setTableSubjects] = useState();
+	const [userAttendanceSubjects, setUserAttendanceSubjects] = useState();
+	const [reqAttendanceSubjects, setReqAttendanceSubjects] = useState(75);
+
+	// initialize subjects states.
 	useEffect(() => {
-		async function getData() {
-			const result1 = await getTimeTable().then((result) => {
-				setTable(result.array);
-				console.log(table);
-			});
-			const result2 = await getAttendance().then((result) => {
-				setAttendance(result.attendance);
-				console.log(userAttendance);
-			});
-		}
-		getData();
-	}, []);
-	// const userAttendance = {
-	// 	Maths: { attended: 4, total: 5 },
-	// 	DA: { attended: 4, total: 5 },
-	// 	TOC: { attended: 4, total: 5 },
-	// 	OS: { attended: 4, total: 5 },
-	// };
+		if (table) setTableSubjects(table);
+		if (userAttendance) setUserAttendanceSubjects(userAttendance);
+		if (reqAtt) setReqAttendanceSubjects(reqAtt);
+	}, [table, userAttendance, reqAtt]);
 
 	var date = new Date();
 	var days = [
@@ -46,54 +26,64 @@ const Homepage = () => {
 		"Friday",
 		"Saturday",
 	];
-	// var day = days[date.getDay()];
-	var day = "Monday";
+	var day = days[date.getDay()];
 
-	function extractUniqueElements(table) {
+	function extractUniqueElements(tableSubjects) {
 		const uniqueElements = new Set();
-		for (let i = 1; i < table.length; i++) {
-			for (let j = 1; j < table[i].length; j++) {
-				uniqueElements.add(table[i][j]);
+		if (tableSubjects)
+			for (let i = 1; i < tableSubjects.length; i++) {
+				for (let j = 1; j < tableSubjects[i].length; j++) {
+					uniqueElements.add(tableSubjects[i][j]);
+				}
 			}
-		}
 		return Array.from(uniqueElements);
 	}
 
-	const allSubjects = extractUniqueElements(table);
+	const allSubjects = extractUniqueElements(tableSubjects);
 
-	const allLectures = allSubjects.map((row) => (
+	const allLectures = allSubjects.map((row, rowIndex) => (
 		<div
-			key={row}
+			key={rowIndex}
 			className='flex w-full justify-between px-8 py-4 border border-y'>
 			<div>
 				<div>{row}</div>
-				<div
-					className={`${
-						(
-							(userAttendance[row].attended / userAttendance[row].total) *
+				{userAttendanceSubjects[row] && (
+					<div
+						className={`${
+							(
+								(userAttendanceSubjects[row].attended /
+									userAttendanceSubjects[row].total) *
+								100
+							).toFixed(2) > reqAttendanceSubjects
+								? "bg-green-500"
+								: "bg-rose-500"
+						} p-1 m-1 flex justify-center items-center text-white w-20 rounded-md`}>
+						{(
+							(userAttendanceSubjects[row].attended /
+								userAttendanceSubjects[row].total) *
 							100
-						).toFixed(2) > reqAttendance
-							? "bg-green-500"
-							: "bg-rose-500"
-					} p-1 m-1 flex justify-center items-center text-white w-20 rounded-md`}>
-					{(
-						(userAttendance[row].attended / userAttendance[row].total) *
-						100
-					).toFixed(2)}{" "}
-					| {reqAttendance}
-				</div>
+						).toFixed(2)}{" "}
+						| {reqAttendanceSubjects}
+					</div>
+				)}
 			</div>
 			<div className='flex gap-4 justify-center items-center'>
-				<div className='text-rose-600'>
-					{userAttendance[row].total - userAttendance[row].attended}
-				</div>
-				<div className='text-green-600'>{userAttendance[row].attended}</div>
-				<div>{userAttendance[row].total}</div>
+				{userAttendanceSubjects[row] && (
+					<div>
+						<div className='text-rose-600'>
+							{userAttendanceSubjects[row].total -
+								userAttendanceSubjects[row].attended}
+						</div>
+						<div className='text-green-600'>
+							{userAttendanceSubjects[row].attended}
+						</div>
+						<div>{userAttendanceSubjects[row].total}</div>
+					</div>
+				)}
 			</div>
 		</div>
 	));
 
-	var day = days[date.getDay()];
 	return (
 		<div className='flex flex-col justify-end w-[100vw]'>
 			<div>
@@ -107,4 +97,4 @@ const Homepage = () => {
 	);
 };
 
-export default Homepage;
+export default Subjects;

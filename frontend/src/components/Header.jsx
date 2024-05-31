@@ -1,29 +1,42 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import {
+	setReqAttendance,
+	getReqAttendance,
+} from "../services/userAttendanceApi";
 
-const Header = ({ params }) => {
+const Header = ({ userAttendance }) => {
 	var date = new Date();
-	const [reqAttendance, setReqAttendance] = useState(75);
+	const [reqAttendanceHeader, setReqAttendanceHeader] = useState(75);
 	const [currentAttendance, setCurrentAttendance] = useState(0);
-	const [userAttendance, setUserAttendance] = useState({
-		Maths: { attended: 4, total: 5 },
-		DA: { attended: 4, total: 5 },
-		TOC: { attended: 4, total: 5 },
-		OS: { attended: 4, total: 5 },
-	});
+	const [userAttendanceHeader, setUserAttendanceHeader] =
+		useState(userAttendance);
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
+	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
 		var attended = 0;
 		var total = 0;
-		for (const key in userAttendance) {
+		for (const key in userAttendanceHeader) {
 			if (userAttendance.hasOwnProperty.call(userAttendance, key)) {
 				const element = userAttendance[key];
 				attended += element.attended;
 				total += element.total;
 			}
 		}
-		setCurrentAttendance((attended / total).toFixed(2) * 100);
+		let att = 0;
+		total === 0 ? (att = 0) : (att = (attended / total).toFixed(2) * 100);
+		setCurrentAttendance(att);
+	}, [userAttendanceHeader]);
+
+	useEffect(() => {
+		async function get() {
+			const a = await getReqAttendance();
+			setReqAttendanceHeader(a);
+			setUserAttendanceHeader(userAttendance);
+			setIsLoading(false); // set loading to false once data is fetched
+		}
+		get();
 	}, [userAttendance]);
 
 	var days = [
@@ -46,13 +59,29 @@ const Header = ({ params }) => {
 	function handleMenu() {
 		setIsMenuOpen(!isMenuOpen);
 	}
+	const [submit, setSubmit] = useState(false);
+
+	const handleInputBlur = (e) => {
+		let content = e.target.value;
+		if (content) {
+			setReqAttendanceHeader(content);
+			setReqAttendance(content);
+		}
+	};
 
 	return (
 		<div>
 			<div className='w-100vw h-full flex justify-evenly items-center py-2'>
 				<div>{formattedDate}</div>
-				<div className='border rounded-md p-2'>
-					{currentAttendance} | {reqAttendance}
+				<div className='border rounded-md p-2 pr-0 flex'>
+					{currentAttendance.toFixed(2)} |{" "}
+					{!isLoading && (
+						<input
+							className='pl-1 focus:outline-none w-7'
+							onBlur={handleInputBlur}
+							defaultValue={reqAttendanceHeader}
+						/>
+					)}
 				</div>
 				<div onClick={handleMenu}>
 					<i className='fa-solid fa-bars fa-xl'></i>

@@ -1,23 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { setAttendance } from "../services/userAttendanceApi";
 
-const Homepage = () => {
-	const timetable = [
-		["TIME >", "10-11", "11-12"],
-		["Monday", "Maths", "DA", "TOC", "OS"],
-	];
-	const [table, setTable] = useState(timetable);
-	const [userAttendance, setUserAttendance] = useState({
-		Maths: { attended: 4, total: 5 },
-		DA: { attended: 4, total: 5 },
-		TOC: { attended: 4, total: 5 },
-		OS: { attended: 4, total: 5 },
-	});
+const Homepage = ({ table, userAttendance, reqAtt }) => {
 	const [lectureCount, setLectureCount] = useState({});
-	const [reqAttendance, setReqAttendance] = useState(75);
 	const [addMenu, setAddMenu] = useState(false);
-	const [lastaction, setLastaction] = useState(0);
+	const [todaysLectures, setTodaysLectures] = useState();
+
+	const [tableHome, setTableHome] = useState([]);
+	const [userAttendanceHome, setUserAttendanceHome] = useState({});
+	const [reqAttendance, setReqAttendance] = useState(75);
+
 	var date = new Date();
 	var days = [
 		"Sunday",
@@ -28,22 +22,29 @@ const Homepage = () => {
 		"Friday",
 		"Saturday",
 	];
-	// var day = days[date.getDay()];
-	var day = "Monday";
+	var day = days[date.getDay()];
+
+	useEffect(() => {
+		if (table) setTableHome(table);
+		if (userAttendance) setUserAttendanceHome(userAttendance);
+		if (reqAtt) setReqAttendance(reqAtt);
+	}, [table, userAttendance, reqAtt]);
 
 	function setLectureCountForToday() {
 		const lectureCounts = {};
-		for (let i = 1; i < table.length; i++) {
-			if (day === table[i][0]) {
-				for (let j = 1; j < table[i].length; j++) {
-					const subject = table[i][j];
-					if (!lectureCounts[subject]) {
-						lectureCounts[subject] = 1;
-					} else {
-						lectureCounts[subject] += 1;
+		if (tableHome) {
+			for (let i = 1; i < tableHome.length; i++) {
+				if (day === tableHome[i][0]) {
+					for (let j = 1; j < tableHome[i].length; j++) {
+						const subject = tableHome[i][j];
+						if (!lectureCounts[subject] && subject !== "") {
+							lectureCounts[subject] = 1;
+						} else if (subject !== "") {
+							lectureCounts[subject] += 1;
+						}
 					}
+					break;
 				}
-				break;
 			}
 		}
 		setLectureCount(lectureCounts);
@@ -51,133 +52,180 @@ const Homepage = () => {
 
 	useEffect(() => {
 		setLectureCountForToday();
-	}, []);
+	}, [tableHome]);
 
 	function handleAddExtraLecture(subject) {
-		setAddMenu(!addMenu);
-		if (subject) {
-			for (let i = 1; i < table.length; i++) {
-				if (table[i][0] === day) {
-					const newTable = table;
+		if (subject && tableHome) {
+			const newTable = [...tableHome];
+			for (let i = 1; i < newTable.length; i++) {
+				if (newTable[i][0] === day) {
 					newTable[i].push(subject);
-					setTable(newTable);
+					setTableHome(newTable);
+					break;
 				}
 			}
 		}
+		setAddMenu(!addMenu);
 		setLectureCountForToday();
 	}
-	function handleClassStatus(status, cell) {
-		const todaysAttendance = userAttendance;
-		const lectureCounts = lectureCount;
-		if (status == 0) {
-			setLastaction(0);
-			if (lastaction == 1) {
-				todaysAttendance[cell].attended = userAttendance[cell].attended;
-				todaysAttendance[cell].total = userAttendance[cell].total - 1;
-				lectureCounts[cell]++;
-			}
-			if (lastaction == 2) {
-				todaysAttendance[cell].attended = userAttendance[cell].attended - 1;
-				todaysAttendance[cell].total = userAttendance[cell].total - 1;
-				lectureCounts[cell]++;
-			}
+
+	class Subject {
+		constructor(status, name, marked, serial) {
+			this.serial = serial;
+			this.name = name;
+			this.status = status;
+			this.marked = marked;
 		}
-		if (status == 1) {
-			if (lectureCounts[cell] && lastaction == 0) {
-				todaysAttendance[cell].attended = userAttendance[cell].attended;
-				todaysAttendance[cell].total = userAttendance[cell].total + 1;
-				lectureCounts[cell]--;
-			}
-			if (lectureCounts[cell] && lastaction == 1) {
-				todaysAttendance[cell].attended = userAttendance[cell].attended;
-				todaysAttendance[cell].total = userAttendance[cell].total + 1;
-				lectureCounts[cell]--;
-			}
-			if (lastaction == 2) {
-				todaysAttendance[cell].attended = userAttendance[cell].attended - 1;
-				todaysAttendance[cell].total = userAttendance[cell].total;
-			}
-			setLastaction(1);
-		}
-		if (status == 2) {
-			if (lectureCounts[cell] && lastaction == 0) {
-				todaysAttendance[cell].attended = userAttendance[cell].attended + 1;
-				todaysAttendance[cell].total = userAttendance[cell].total + 1;
-				lectureCounts[cell]--;
-			}
-			if (lastaction == 1) {
-				todaysAttendance[cell].attended = userAttendance[cell].attended + 1;
-				todaysAttendance[cell].total = userAttendance[cell].total;
-			}
-			if (lectureCounts[cell] && lastaction == 2) {
-				todaysAttendance[cell].attended = userAttendance[cell].attended + 1;
-				todaysAttendance[cell].total = userAttendance[cell].total + 1;
-				lectureCounts[cell]--;
-			}
-			setLastaction(2);
-		}
-		setUserAttendance(todaysAttendance);
-		setLectureCount(lectureCounts);
-		console.log(lectureCount);
-		console.log(userAttendance);
-		console.log(lastaction);
 	}
-	const todaysLectures = table.map((row, rowIndex) => (
-		<div key={rowIndex}>
-			{row[0] == day &&
-				row.map((cell, cellIndex) => (
-					<div
-						className='border border-y'
-						key={cellIndex}>
-						{cellIndex > 0 && (
-							<div
-								key={cellIndex}
-								className='p-2 flex justify-between items-center'>
-								<div>
-									<div className='p-2  text-lg'>{cell}</div>
-									<div
-										className={`${
-											(
-												(userAttendance[cell].attended /
-													userAttendance[cell].total) *
-												100
-											).toFixed(2) > reqAttendance
-												? "bg-green-500"
-												: "bg-rose-500"
-										} p-1 m-1 flex justify-center items-center text-white w-20 rounded-md`}>
-										{(
-											(userAttendance[cell].attended /
-												userAttendance[cell].total) *
-											100
-										).toFixed(2)}{" "}
-										| {reqAttendance}
+	const structref = useRef();
+	const [struct, setStruct] = useState(() => {
+		const savedStruct = localStorage.getItem("struct");
+		return savedStruct ? JSON.parse(savedStruct) : [];
+	});
+	useEffect(() => {
+		structref.current = struct;
+	}, [struct]);
+
+	useEffect(() => {
+		localStorage.setItem("struct", JSON.stringify(struct));
+	}, [struct]);
+
+	useEffect(() => {
+		const newArray = [...structref.current];
+		for (let i = 1; i < tableHome.length; i++) {
+			if (tableHome[i][0] === day) {
+				for (let j = 1; j < tableHome[i].length; j++) {
+					const element = tableHome[i][j];
+					if (element) {
+						const obj = new Subject(0, element, 0, j);
+						const existing = newArray.find(
+							(sub) => sub.name === element && sub.serial === j
+						);
+						if (!existing) newArray.push(obj);
+					}
+				}
+				break;
+			}
+		}
+		setStruct(newArray);
+	}, [tableHome, day]);
+
+	function handleClassStatus(cell, cellIndex, whatToDo) {
+		const newUserAttendance = { ...userAttendanceHome };
+		let newStruct = [...struct];
+		for (let i = 0; i < struct.length; i++) {
+			const element = struct[i];
+			if (
+				cell === element.name &&
+				cellIndex === element.serial &&
+				newUserAttendance[cell]
+			) {
+				if (element.marked === 0) {
+					if (whatToDo === 1) {
+						newUserAttendance[cell].total += 1;
+						newUserAttendance[cell].attended += 1;
+						element.marked = 1;
+					} else if (whatToDo === 2) {
+						newUserAttendance[cell].total += 1;
+						element.marked = 2;
+					} else if (whatToDo === 0) {
+						element.marked = 0;
+					}
+				} else {
+					if (element.marked === 1) {
+						newUserAttendance[cell].total -= 1;
+						newUserAttendance[cell].attended -= 1;
+					} else if (element.marked === 2) {
+						newUserAttendance[cell].total -= 1;
+					}
+					if (whatToDo === 1) {
+						newUserAttendance[cell].total += 1;
+						newUserAttendance[cell].attended += 1;
+						element.marked = 1;
+					} else if (whatToDo === 2) {
+						newUserAttendance[cell].total += 1;
+						element.marked = 2;
+					} else if (whatToDo === 0) {
+						element.marked = 0;
+					}
+				}
+				if (!newStruct.includes(element)) newStruct = [...newStruct, element];
+				setStruct(newStruct);
+				setUserAttendanceHome(newUserAttendance);
+				setAttendance(userAttendanceHome);
+			}
+		}
+	}
+
+	useEffect(() => {
+		const array12 = tableHome.map((row, rowIndex) => (
+			<div key={rowIndex}>
+				{row[0] === day &&
+					row.map((cell, cellIndex) => (
+						<div
+							className='border border-y'
+							key={cellIndex}>
+							{cellIndex > 0 && (
+								<div
+									key={cellIndex}
+									className='p-2 flex justify-between items-center'>
+									<div>
+										<div className='p-2  text-lg'>{cell}</div>
+										{userAttendanceHome && (
+											<div
+												className={`${
+													(
+														(userAttendanceHome[cell]?.attended /
+															userAttendanceHome[cell]?.total) *
+														100
+													).toFixed(2) > reqAttendance
+														? "bg-green-500"
+														: "bg-rose-500"
+												} p-1 m-1 flex justify-center items-center text-white w-20 rounded-md`}>
+												{userAttendanceHome[cell]?.total > 0
+													? (
+															(userAttendanceHome[cell]?.attended /
+																userAttendanceHome[cell]?.total) *
+															100
+													  ).toFixed(2)
+													: "00"}{" "}
+												|{" "}
+												{userAttendanceHome[cell]?.total > 0
+													? reqAttendance
+													: "00"}
+											</div>
+										)}
+									</div>
+
+									<div className='flex gap-4 px-6'>
+										<div
+											className='hover:bg-slate-200 rounded-full p-1'
+											onClick={() => handleClassStatus(cell, cellIndex, 0)}>
+											<i className='fa-solid fa-ban fa-lg  inline-block'></i>
+										</div>
+										<div
+											className={`hover:bg-slate-200  rounded-full p-1 `}
+											onClick={() => handleClassStatus(cell, cellIndex, 2)}>
+											<i
+												className={`fa-regular fa-circle-xmark fa-lg inline-block `}></i>
+										</div>
+										<div
+											className='hover:bg-slate-200 rounded-full p-1'
+											onClick={() => handleClassStatus(cell, cellIndex, 1)}>
+											<i className='fa-regular fa-circle-check fa-lg  inline-block'></i>
+										</div>
 									</div>
 								</div>
-								<div className='flex gap-4 px-6'>
-									<div
-										className='hover:bg-slate-200 rounded-full p-1'
-										onClick={() => handleClassStatus(0, cell)}>
-										<i className='fa-solid fa-ban fa-lg  inline-block'></i>
-									</div>
-									<div
-										className={`hover:bg-slate-200  rounded-full p-1 `}
-										onClick={() => handleClassStatus(1, cell)}>
-										<i
-											className={`fa-regular fa-circle-xmark fa-lg inline-block `}></i>
-									</div>
-									<div
-										className='hover:bg-slate-200 rounded-full p-1'
-										onClick={() => handleClassStatus(2, cell)}>
-										<i className='fa-regular fa-circle-check fa-lg  inline-block'></i>
-									</div>
-								</div>
-							</div>
-						)}
-					</div>
-				))}
-		</div>
-	));
+							)}
+						</div>
+					))}
+			</div>
+		));
+		setTodaysLectures(array12);
+	}, [tableHome, userAttendanceHome, struct]);
+
 	function extractUniqueSubjects(table) {
+		if (!table) return [];
 		const subjects = new Set();
 
 		for (let i = 1; i < table.length; i++) {
@@ -188,7 +236,7 @@ const Homepage = () => {
 
 		return Array.from(subjects);
 	}
-	const uniqueSubjects = extractUniqueSubjects(table);
+	const uniqueSubjects = extractUniqueSubjects(tableHome);
 	const availableSubjects = uniqueSubjects.map((sub) => (
 		<div
 			key={sub}
@@ -201,7 +249,7 @@ const Homepage = () => {
 	return (
 		<div className='flex flex-col justify-end w-[100vw]'>
 			<div>
-				<Header />
+				<Header userAttendance={userAttendanceHome} />
 			</div>
 			<div className='h-[80vh] overflow-auto'>
 				<div>{todaysLectures}</div>
