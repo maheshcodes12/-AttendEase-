@@ -2,15 +2,26 @@ import React, { useEffect, useState, useMemo, useRef } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { setAttendance } from "../services/userAttendanceApi";
+import { isLoggedInApi } from "../services/auth";
+import { useNavigate } from "react-router-dom";
 
 const Homepage = ({ table, userAttendance, reqAtt }) => {
 	const [lectureCount, setLectureCount] = useState({});
 	const [addMenu, setAddMenu] = useState(false);
 	const [todaysLectures, setTodaysLectures] = useState();
+	const [isLoggedIn, setIsLoggedIn] = useState(false);
 
 	const [tableHome, setTableHome] = useState([]);
 	const [userAttendanceHome, setUserAttendanceHome] = useState({});
 	const [reqAttendance, setReqAttendance] = useState(75);
+
+	const navigate = useNavigate();
+
+	useEffect(() => {
+		if (!isLoggedInApi()) {
+			navigate("/auth");
+		}
+	}, []);
 
 	var date = new Date();
 	var days = [
@@ -156,69 +167,72 @@ const Homepage = ({ table, userAttendance, reqAtt }) => {
 			}
 		}
 	}
-
+	// Components
 	useEffect(() => {
 		const array12 = tableHome.map((row, rowIndex) => (
 			<div key={rowIndex}>
 				{row[0] === day &&
-					row.map((cell, cellIndex) => (
-						<div
-							className='border border-y'
-							key={cellIndex}>
-							{cellIndex > 0 && (
+					row.map(
+						(cell, cellIndex) =>
+							cell != "" && (
 								<div
-									key={cellIndex}
-									className='p-2 flex justify-between items-center'>
-									<div>
-										<div className='p-2  text-lg'>{cell}</div>
-										{userAttendanceHome && (
-											<div
-												className={`${
-													(
-														(userAttendanceHome[cell]?.attended /
-															userAttendanceHome[cell]?.total) *
-														100
-													).toFixed(2) > reqAttendance
-														? "bg-green-500"
-														: "bg-rose-500"
-												} p-1 m-1 flex justify-center items-center text-white w-20 rounded-md`}>
-												{userAttendanceHome[cell]?.total > 0
-													? (
-															(userAttendanceHome[cell]?.attended /
-																userAttendanceHome[cell]?.total) *
-															100
-													  ).toFixed(2)
-													: "00"}{" "}
-												|{" "}
-												{userAttendanceHome[cell]?.total > 0
-													? reqAttendance
-													: "00"}
+									className='border border-y'
+									key={cellIndex}>
+									{cellIndex > 0 && (
+										<div
+											key={cellIndex}
+											className='p-2 flex justify-between items-center'>
+											<div>
+												<div className='p-2  text-lg'>{cell != "" && cell}</div>
+												{userAttendanceHome && (
+													<div
+														className={`${
+															(
+																(userAttendanceHome[cell]?.attended /
+																	userAttendanceHome[cell]?.total) *
+																100
+															).toFixed(2) > reqAttendance
+																? "bg-green-500"
+																: "bg-rose-500"
+														} p-1 m-1 flex justify-center items-center text-white w-20 rounded-md`}>
+														{userAttendanceHome[cell]?.total > 0
+															? (
+																	(userAttendanceHome[cell]?.attended /
+																		userAttendanceHome[cell]?.total) *
+																	100
+															  ).toFixed(2)
+															: "00"}{" "}
+														|{" "}
+														{userAttendanceHome[cell]?.total > 0
+															? reqAttendance
+															: "00"}
+													</div>
+												)}
 											</div>
-										)}
-									</div>
 
-									<div className='flex gap-4 px-6'>
-										<div
-											className='hover:bg-slate-200 rounded-full p-1'
-											onClick={() => handleClassStatus(cell, cellIndex, 0)}>
-											<i className='fa-solid fa-ban fa-lg  inline-block'></i>
+											<div className='flex gap-4 px-6'>
+												<div
+													className='hover:bg-slate-200 rounded-full p-1'
+													onClick={() => handleClassStatus(cell, cellIndex, 0)}>
+													<i className='fa-solid fa-ban fa-lg  inline-block'></i>
+												</div>
+												<div
+													className={`hover:bg-slate-200  rounded-full p-1 `}
+													onClick={() => handleClassStatus(cell, cellIndex, 2)}>
+													<i
+														className={`fa-regular fa-circle-xmark fa-lg inline-block `}></i>
+												</div>
+												<div
+													className='hover:bg-slate-200 rounded-full p-1'
+													onClick={() => handleClassStatus(cell, cellIndex, 1)}>
+													<i className='fa-regular fa-circle-check fa-lg  inline-block'></i>
+												</div>
+											</div>
 										</div>
-										<div
-											className={`hover:bg-slate-200  rounded-full p-1 `}
-											onClick={() => handleClassStatus(cell, cellIndex, 2)}>
-											<i
-												className={`fa-regular fa-circle-xmark fa-lg inline-block `}></i>
-										</div>
-										<div
-											className='hover:bg-slate-200 rounded-full p-1'
-											onClick={() => handleClassStatus(cell, cellIndex, 1)}>
-											<i className='fa-regular fa-circle-check fa-lg  inline-block'></i>
-										</div>
-									</div>
+									)}
 								</div>
-							)}
-						</div>
-					))}
+							)
+					)}
 			</div>
 		));
 		setTodaysLectures(array12);
@@ -230,7 +244,7 @@ const Homepage = ({ table, userAttendance, reqAtt }) => {
 
 		for (let i = 1; i < table.length; i++) {
 			for (let j = 1; j < table[i].length; j++) {
-				subjects.add(table[i][j]);
+				if (table[i][j] != "") subjects.add(table[i][j]);
 			}
 		}
 

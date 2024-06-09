@@ -84,7 +84,7 @@ const Header = ({ userAttendance }) => {
 					)}
 				</div>
 				<div onClick={handleMenu}>
-					<i className='fa-solid fa-bars fa-xl'></i>
+					<i className='fa-solid fa-user cursor-pointer'></i>
 				</div>
 			</div>
 			<div>

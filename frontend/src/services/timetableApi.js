@@ -1,5 +1,6 @@
 import axios from "axios";
-const backend_url = "http://localhost:3000";
+const backend_url = import.meta.env.VITE_BACKEND_URI;
+const frontendURI = import.meta.env.VITE_frontendURI;
 
 export async function setTimeTable(timetable) {
 	let table_id = localStorage.getItem("table_id");
@@ -50,8 +51,32 @@ export async function getTimeTable() {
 			const table = await axios.get(`${backend_url}/timetable`, {
 				params: { table_id: table_id },
 			});
-			if (table.data.success) return table.data.timetable.array;
-			else return makeTT();
+			if (table.data.success) {
+				const array = table.data.timetable.array;
+				const days = [
+					["Time->"],
+					["Monday"],
+					["Tuesday"],
+					["Wednesday"],
+					["Thrusday"],
+					["Friday"],
+					["Saturday"],
+				];
+				if (array.length < 7) {
+					for (let i = array.length; i < 7; i++) {
+						array.push(days[i]);
+					}
+				}
+				let z = 0;
+				for (let i = 0; i < 7; i++, z++) {
+					for (let j = array[i].length; j < 7; j++) {
+						if (i == 0) array[i].push("Time");
+						else array[i].push("");
+					}
+				}
+
+				return table.data.timetable.array;
+			} else return makeTT();
 		} catch (e) {
 			console.log(e);
 		}

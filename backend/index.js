@@ -5,7 +5,7 @@ const path = require("path");
 const cors = require("cors");
 const fs = require("fs");
 const timetableRoute = require("./routes/timetableRoute.js");
-const uploadRoute = require("./routes/uploadRoute.js");
+const authRoute = require("./routes/auth.js");
 
 var mongoose = require("mongoose");
 const userAttendanceRoute = require("./routes/userAttendanceRoute.js");
@@ -51,7 +51,7 @@ app.use(express.static("public"));
 
 app.use("/timetable", timetableRoute);
 app.use("/attendance", userAttendanceRoute);
-app.use("/upload", uploadRoute);
+app.use("/auth", authRoute);
 
 app.listen(PORT, () => {
 	console.log(`Server is running on port ${PORT}`);

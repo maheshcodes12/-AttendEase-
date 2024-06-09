@@ -3,11 +3,22 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { getTimeTable } from "../services/timetableApi";
 import { getAttendance, setAttendance } from "../services/userAttendanceApi";
+import { isLoggedInApi } from "../services/auth";
+import { useNavigate } from "react-router-dom";
 
 const Subjects = ({ table, userAttendance, reqAtt }) => {
 	const [tableSubjects, setTableSubjects] = useState();
 	const [userAttendanceSubjects, setUserAttendanceSubjects] = useState();
 	const [reqAttendanceSubjects, setReqAttendanceSubjects] = useState(75);
+	const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+	const navigate = useNavigate();
+
+	useEffect(() => {
+		if (!isLoggedInApi()) {
+			navigate("/auth");
+		}
+	}, []);
 
 	// initialize subjects states.
 	useEffect(() => {
@@ -33,7 +44,8 @@ const Subjects = ({ table, userAttendance, reqAtt }) => {
 		if (tableSubjects)
 			for (let i = 1; i < tableSubjects.length; i++) {
 				for (let j = 1; j < tableSubjects[i].length; j++) {
-					uniqueElements.add(tableSubjects[i][j]);
+					if (tableSubjects[i][j] != "")
+						uniqueElements.add(tableSubjects[i][j]);
 				}
 			}
 		return Array.from(uniqueElements);
@@ -87,7 +99,7 @@ const Subjects = ({ table, userAttendance, reqAtt }) => {
 	return (
 		<div className='flex flex-col justify-end w-[100vw]'>
 			<div>
-				<Header />
+				<Header userAttendance={userAttendance} />
 			</div>
 			<div className='h-[80vh] overflow-auto'>{allLectures}</div>
 			<div>

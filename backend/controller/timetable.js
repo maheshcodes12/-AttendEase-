@@ -1,7 +1,4 @@
 const Timetable = require("../models/timetableModel.js");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const dotenv = require("dotenv");
 
 async function setTimetable(req, res) {
 	try {

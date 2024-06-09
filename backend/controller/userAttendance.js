@@ -56,7 +56,7 @@ async function getUserAttendance(req, res) {
 
 		res
 			.status(200)
-			.json({ success: true, attendance: gotAttendance[0].attendance });
+			.json({ success: true, attendance: gotAttendance[0]?.attendance });
 	} catch (error) {
 		console.error("Error:", error);
 		res.status(500).json({

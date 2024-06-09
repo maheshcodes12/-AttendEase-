@@ -1,23 +1,22 @@
 import axios from "axios";
 import { getTimeTable } from "./timetableApi";
-const backend_url = "http://localhost:3000";
+const backend_url = import.meta.env.VITE_BACKEND_URI;
+const frontendURI = import.meta.env.VITE_frontendURI;
 
 export async function setAttendance(userAttendance) {
 	let user_id = localStorage.getItem("user_id");
 
-	if (!user_id) {
-		user_id = Math.floor(Math.random() * 9000) + 1000;
-		localStorage.setItem("user_id", user_id);
+	if (user_id) {
+		try {
+			const newAttendance = await axios.post(`${backend_url}/attendance`, {
+				user_id: user_id,
+				attendance: userAttendance,
+			});
+		} catch (e) {
+			console.log(e);
+		}
 	} else {
-		user_id = Number(user_id);
-	}
-	try {
-		const newAttendance = await axios.post(`${backend_url}/attendance`, {
-			user_id: user_id,
-			attendance: userAttendance,
-		});
-	} catch (e) {
-		console.log(e);
+		return makeAttendance();
 	}
 }
 
@@ -65,7 +64,6 @@ export async function getAttendance() {
 
 export async function setReqAttendance(required) {
 	let user_id = localStorage.getItem("user_id");
-	console.log("called");
 	if (user_id) {
 		user_id = Number(user_id);
 		try {

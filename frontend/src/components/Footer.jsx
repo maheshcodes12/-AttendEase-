@@ -15,11 +15,7 @@ const Footer = () => {
 					<i className='fa-solid fa-table-cells px-1'></i>Timetable
 				</div>
 			</Link>
-			<Link to='/calendar'>
-				<div>
-					<i className='fa-solid fa-calendar-days px-1'></i>Calendar
-				</div>
-			</Link>
+
 			<Link to='/subjects'>
 				<div>
 					<i className='fa-solid fa-book px-1'></i>Subjects

@@ -4,7 +4,7 @@ import Homepage from "./pages/Homepage";
 import Timetable from "./pages/Timetable";
 import Subjects from "./pages/Subjects";
 import { NotFound } from "./pages/NotFound";
-
+import Login from "./pages/Login";
 //importing apis
 import { setTimeTable, getTimeTable } from "./services/timetableApi";
 import {
@@ -13,6 +13,7 @@ import {
 	setReqAttendance,
 	getReqAttendance,
 } from "./services/userAttendanceApi";
+import { isLoggedInApi } from "./services/auth";
 
 function App() {
 	const [table, setTable] = useState([]);
@@ -67,6 +68,10 @@ function App() {
 			<Router>
 				<Routes>
 					<Route
+						path='/auth'
+						element={<Login />}
+					/>
+					<Route
 						path='/'
 						element={
 							<Homepage
@@ -76,6 +81,7 @@ function App() {
 							/>
 						}
 					/>
+
 					<Route
 						path='/timetable'
 						element={
