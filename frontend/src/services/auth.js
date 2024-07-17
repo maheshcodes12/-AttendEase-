@@ -22,7 +22,6 @@ export const signupApi = async (name, email, password) => {
 			localStorage.setItem("token", response.data.token);
 			loginApi(email, password);
 			setReqAttendance(75);
-			console.log("hiii");
 		}
 	} catch (error) {
 		console.log(error);
