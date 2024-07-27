@@ -6,11 +6,14 @@ const cors = require("cors");
 const fs = require("fs");
 const timetableRoute = require("./routes/timetableRoute.js");
 const authRoute = require("./routes/auth.js");
+dotenv.config({
+	path: "./.env",
+});
 
 var mongoose = require("mongoose");
 const userAttendanceRoute = require("./routes/userAttendanceRoute.js");
 
-var mongoDB = "mongodb://localhost:27017/TT";
+var mongoDB = process.env.MONGODB_URL;
 mongoose
 	.connect(mongoDB)
 	.then(() => {
@@ -21,12 +24,8 @@ mongoose
 	});
 
 var db = mongoose.connection;
-db.on("error", console.error.bind(console, "MongoDB connection error:"));
-db.on("error", console.error.bind(console, "MongoDB connection error:"));
 
-dotenv.config({
-	path: "./.env",
-});
+db.on("error", console.error.bind(console, "MongoDB connection error:"));
 
 const app = express();
 app.use(cors());
